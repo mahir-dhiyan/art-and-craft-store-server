@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // middleware
 app.use(cors());
 app.use(express.json());
@@ -26,6 +26,54 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    // Creting collections
+    const artCollection = client.db("artDB").collection("art");
+    // POST----------------------
+    app.post('/art',async(req,res)=>{
+        const newArt = req.body;
+        console.log(newArt);
+        const result = await artCollection.insertOne(newArt);
+        res.send(result);
+    })
+    // GET---------------------------
+    app.get('/art',async(req,res)=>{
+      const cursor = artCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    // GET based on email-----------------------
+    app.get('/art/:email',async(req,res)=>{
+      const mail = req.params.email;
+      // console.log(mail);
+      const query = {email: mail};
+      const cursor =artCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    // PUT ---------------------------------------
+    app.put('/art/:id',async(req,res)=>{
+        const crafts = req.body;
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)};
+        const options = {upsert: true};
+        const updatedCrafts={
+          $set:{
+            image:crafts.image,
+            item_name:crafts.item_name,
+            subcategory_name:crafts.subcategory_name,
+            short_description:crafts.short_description,
+            price:crafts.price,
+            rating:crafts.rating,
+            customization:crafts.customization,
+            processing_time:crafts.processing_time,
+            stock_status:crafts.stock_status,
+            email:crafts.email,
+            name:crafts.name
+          }
+        };
+        const result = await artCollection.updateOne(filter,updatedCrafts,options);
+        res.send(result);
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
