@@ -28,6 +28,7 @@ async function run() {
     await client.connect();
     // Creting collections
     const artCollection = client.db("artDB").collection("art");
+    const subCatCollection = client.db("artDB").collection("subCat");
     // POST----------------------
     app.post('/art', async (req, res) => {
       const newArt = req.body;
@@ -79,6 +80,12 @@ async function run() {
       const id = req.params;
       const query = { _id: new ObjectId(id) };
       const result = await artCollection.deleteOne(query);
+      res.send(result);
+    })
+    // GET for SubCat-----------------------
+    app.get('/sub', async (req, res) => {
+      const cursor = subCatCollection.find();
+      const result = await cursor.toArray();
       res.send(result);
     })
     // Send a ping to confirm a successful connection
